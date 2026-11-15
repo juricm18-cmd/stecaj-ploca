@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stečaj monitor – nadzorna ploča</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#fff; --ink:#1d1f23; --muted:#6b6f76; --line:#e4e2dc;
+    --accent:#1f4e79; --accent-soft:#e8eef5; --ok:#2e7d4f; --ok-soft:#e7f3ec;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#16181b; --card:#1f2226; --ink:#eceae6; --muted:#9a9ea5; --line:#2e3238;
+      --accent:#8db8e6; --accent-soft:#22303f; --ok:#7cc79a; --ok-soft:#1f3328; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 48px}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .logo{width:42px;height:42px;border-radius:10px;background:var(--accent);display:grid;place-items:center;flex:none}
+  h1{font-size:22px;margin:0;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:2px}
+  .status{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ok);
+    background:var(--ok-soft);padding:6px 11px;border-radius:999px;white-space:nowrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px;font-weight:600}
+  form{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=text]{flex:1 1 260px;font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink);outline:none}
+  input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .btn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-weight:500;text-decoration:none;cursor:pointer;
+    padding:11px 15px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);white-space:nowrap}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .btn.primary{color:#0f1720} }
+  .btn.disabled{opacity:.45;pointer-events:none}
+  .hint{color:var(--muted);font-size:13px;margin-top:10px}
+  .recent{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chip{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);
+    border:0;cursor:pointer;font-family:inherit}
+  .subj{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+  .subj:first-of-type{border-top:0;padding-top:0}
+  .subj .name{font-weight:600;font-size:16px}
+  .subj .meta{color:var(--muted);font-size:13px}
+  .subj .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .tile{display:block;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:var(--bg)}
+  .tile:hover{border-color:var(--accent)}
+  .tile b{display:block;font-weight:600;margin-bottom:3px}
+  .tile span{color:var(--muted);font-size:13px}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .fact{background:var(--bg);border-radius:10px;padding:12px 14px}
+  .fact small{color:var(--muted);display:block;font-size:12px}
+  .fact strong{font-size:15px;font-weight:600}
+  footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:24px}
+  a.inline{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>
+    </div>
+    <div>
+      <h1>Stečaj monitor</h1>
+      <div class="sub">e-Oglasna ploča sudova · stečajevi</div>
+    </div>
+    <div class="status"><span class="dot"></span>Agent aktivan</div>
+  </header>
+
+  <section class="card">
+    <h2>Brza pretraga</h2>
+    <form id="f">
+      <input type="text" id="q" placeholder="Upišite OIB ili naziv, npr. salonit" autocomplete="off">
+      <a class="btn primary disabled" id="open" href="#" target="_blank" rel="noopener">Prikaži objave ↗</a>
+      <a class="btn disabled" id="xlsx" href="#" target="_blank" rel="noopener">Excel ↓</a>
+    </form>
+    <div class="hint">Rezultati se otvaraju izravno na e-oglasna.pravosudje.hr, uvijek s najnovijim objavama.</div>
+    <div class="recent" id="recent"></div>
+  </section>
+
+  <section class="card">
+    <h2>Praćeni subjekti</h2>
+    <div id="subjects"></div>
+    <div class="hint">Za ove pojmove agent svaki radni dan provjerava nove objave i šalje vam e-mail.
+      Popis mijenjate gumbom „Dodaj ili ukloni subjekte” ispod.</div>
+  </section>
+
+  <section class="card">
+    <h2>Agent</h2>
+    <div class="grid">
+      <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/issues?q=is%3Aissue" target="_blank" rel="noopener">
+        <b>Povijest obavijesti ↗</b><span>Sve obavijesti koje je agent poslao</span></a>
+      <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/edit/main/subjekti.txt" target="_blank" rel="noopener">
+        <b>Dodaj ili ukloni subjekte ↗</b><span>Jedan OIB ili naziv po retku, pa „Commit changes”</span></a>
+      <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/actions/workflows/stecaj-monitor.yml" target="_blank" rel="noopener">
+        <b>Pokreni provjeru sada ↗</b><span>„Run workflow” → zeleni gumb „Run workflow”</span></a>
+      <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/actions" target="_blank" rel="noopener">
+        <b>Zadnje provjere ↗</b><span>Kada je agent radio i je li sve prošlo u redu</span></a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Kako radi</h2>
+    <div class="facts">
+      <div class="fact"><small>Provjera</small><strong>Radnim danom ≈ 18:23</strong></div>
+      <div class="fact"><small>Obavijesti</small><strong>E-mailom (GitHub)</strong></div>
+      <div class="fact"><small>Šalje se</small><strong>Samo kad ima novih objava</strong></div>
+      <div class="fact"><small>Računalo</small><strong>Ne mora biti uključeno</strong></div>
+    </div>
+    <div class="hint">E-mailovi stižu od GitHuba (notifications@github.com), u Gmailu obično pod karticom „Ažuriranja”.</div>
+  </section>
+
+  <footer>Podaci: <a class="inline" href="https://e-oglasna.pravosudje.hr/stecajevi" target="_blank" rel="noopener">e-Oglasna ploča sudova</a> · agent: GitHub Actions</footer>
+</div>
+
+<script>
+  const BASE = "https://e-oglasna.pravosudje.hr";
+  const SUBJEKTI = ["salonit"];   // isti popis kao u subjekti.txt
+
+  const listUrl = q => BASE + "/stecajevi?" + new URLSearchParams({text:q, sort:"datePublished,desc"});
+  const xlsxUrl = q => BASE + "/stecajevi/izvoz/xlsx?" + new URLSearchParams({text:q, sort:"datePublished,desc"});
+
+  const q = document.getElementById("q"), openB = document.getElementById("open"), xB = document.getElementById("xlsx");
+  function store(){ try{ return JSON.parse(localStorage.getItem("stecaj-recent")||"[]") }catch(e){ return [] } }
+  function save(arr){ try{ localStorage.setItem("stecaj-recent", JSON.stringify(arr)) }catch(e){} }
+  function remember(v){ const r = store().filter(x=>x.toLowerCase()!==v.toLowerCase()); r.unshift(v); save(r.slice(0,6)); renderRecent(); }
+
+  function update(){
+    const v = q.value.trim();
+    [openB, xB].forEach(b=>b.classList.toggle("disabled", !v));
+    openB.href = v ? listUrl(v) : "#";
+    xB.href = v ? xlsxUrl(v) : "#";
+  }
+  q.addEventListener("input", update);
+  [openB, xB].forEach(b=>b.addEventListener("click", ()=>{ const v=q.value.trim(); if(v) remember(v); }));
+  document.getElementById("f").addEventListener("submit", e=>{ e.preventDefault(); if(q.value.trim()) openB.focus(); });
+
+  function renderRecent(){
+    const el = document.getElementById("recent"); el.innerHTML = "";
+    const r = store(); if(!r.length) return;
+    r.forEach(v=>{ const c=document.createElement("button"); c.type="button"; c.className="chip"; c.textContent=v;
+      c.onclick=()=>{ q.value=v; update(); openB.focus(); }; el.appendChild(c); });
+  }
+
+  const subs = document.getElementById("subjects");
+  SUBJEKTI.forEach(s=>{
+    const d = document.createElement("div"); d.className="subj";
+    d.innerHTML = `<div><div class="name"></div><div class="meta">${/^\d{11}$/.test(s)?"OIB":"naziv (sadrži)"}</div></div>
+      <div class="actions"><a class="btn primary" target="_blank" rel="noopener">Objave ↗</a>
+      <a class="btn" target="_blank" rel="noopener">Excel ↓</a></div>`;
+    d.querySelector(".name").textContent = s;
+    const [a,b] = d.querySelectorAll("a"); a.href = listUrl(s); b.href = xlsxUrl(s);
+    subs.appendChild(d);
+  });
+  renderRecent(); update();
+</script>
+</body>
+</html>
