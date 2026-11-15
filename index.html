@@ -85,9 +85,14 @@
 
   <section class="card">
     <h2>Praćeni subjekti</h2>
-    <div id="subjects"></div>
-    <div class="hint">Za ove pojmove agent svaki radni dan provjerava nove objave i šalje vam e-mail.
-      Popis mijenjate gumbom „Dodaj ili ukloni subjekte” ispod.</div>
+    <div id="subjects"><div class="hint">Učitavam popis…</div></div>
+    <form id="addf" style="margin-top:16px">
+      <input type="text" id="addq" placeholder="Novi subjekt: OIB ili naziv" autocomplete="off" maxlength="100">
+      <a class="btn primary disabled" id="addb" href="#" target="_blank" rel="noopener">＋ Dodaj praćenje</a>
+    </form>
+    <div class="hint" id="addhint">Klikom na „Dodaj praćenje” (ili „Ukloni”) otvara se GitHub s pripremljenim zahtjevom –
+      samo kliknite zeleni gumb <b>„Create”</b>. Popis se ažurira za oko minutu, a agent novi subjekt
+      provjerava uz sljedeću večernju provjeru. Potrebna je prijava na vaš GitHub račun.</div>
   </section>
 
   <section class="card">
@@ -95,8 +100,8 @@
     <div class="grid">
       <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/issues?q=is%3Aissue" target="_blank" rel="noopener">
         <b>Povijest obavijesti ↗</b><span>Sve obavijesti koje je agent poslao</span></a>
-      <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/edit/main/subjekti.txt" target="_blank" rel="noopener">
-        <b>Dodaj ili ukloni subjekte ↗</b><span>Jedan OIB ili naziv po retku, pa „Commit changes”</span></a>
+      <a class="tile" href="https://github.com/juricm18-cmd/stecaj-ploca/issues?q=is%3Aissue" target="_blank" rel="noopener">
+        <b>Promjene popisa ↗</b><span>Svako dodavanje i uklanjanje subjekta</span></a>
       <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/actions/workflows/stecaj-monitor.yml" target="_blank" rel="noopener">
         <b>Pokreni provjeru sada ↗</b><span>„Run workflow” → zeleni gumb „Run workflow”</span></a>
       <a class="tile" href="https://github.com/juricm18-cmd/stecaj-monitor/actions" target="_blank" rel="noopener">
@@ -120,7 +125,12 @@
 
 <script>
   const BASE = "https://e-oglasna.pravosudje.hr";
-  const SUBJEKTI = ["salonit"];   // isti popis kao u subjekti.txt
+  const REPO = "https://github.com/juricm18-cmd/stecaj-ploca";
+  const SUBJEKTI_URL = "https://raw.githubusercontent.com/juricm18-cmd/stecaj-ploca/main/subjekti.txt";
+  const zahtjev = (akcija, s) => REPO + "/issues/new?" + new URLSearchParams({
+    title: akcija + ": " + s,
+    body: "Zahtjev s nadzorne ploče. Kliknite **Create** – agent će ažurirati popis i zatvoriti ovaj zahtjev."
+  });
 
   const listUrl = q => BASE + "/stecajevi?" + new URLSearchParams({text:q, sort:"datePublished,desc"});
   const xlsxUrl = q => BASE + "/stecajevi/izvoz/xlsx?" + new URLSearchParams({text:q, sort:"datePublished,desc"});
@@ -148,16 +158,44 @@
   }
 
   const subs = document.getElementById("subjects");
-  SUBJEKTI.forEach(s=>{
-    const d = document.createElement("div"); d.className="subj";
-    d.innerHTML = `<div><div class="name"></div><div class="meta">${/^\d{11}$/.test(s)?"OIB":"naziv (sadrži)"}</div></div>
-      <div class="actions"><a class="btn primary" target="_blank" rel="noopener">Objave ↗</a>
-      <a class="btn" target="_blank" rel="noopener">Excel ↓</a></div>`;
-    d.querySelector(".name").textContent = s;
-    const [a,b] = d.querySelectorAll("a"); a.href = listUrl(s); b.href = xlsxUrl(s);
-    subs.appendChild(d);
-  });
-  renderRecent(); update();
+  function renderSubjects(list){
+    subs.innerHTML = "";
+    if(!list.length){ subs.innerHTML = '<div class="hint">Trenutno se ne prati nijedan subjekt – dodajte ga ispod.</div>'; return; }
+    list.forEach(s=>{
+      const d = document.createElement("div"); d.className="subj";
+      d.innerHTML = `<div><div class="name"></div><div class="meta">${/^\d{11}$/.test(s)?"OIB":"naziv (sadrži)"}</div></div>
+        <div class="actions"><a class="btn primary" target="_blank" rel="noopener">Objave ↗</a>
+        <a class="btn" target="_blank" rel="noopener">Excel ↓</a>
+        <a class="btn" target="_blank" rel="noopener" title="Prestani pratiti">Ukloni</a></div>`;
+      d.querySelector(".name").textContent = s;
+      const [a,b,c] = d.querySelectorAll("a"); a.href = listUrl(s); b.href = xlsxUrl(s); c.href = zahtjev("Ukloni", s);
+      subs.appendChild(d);
+    });
+  }
+  async function loadSubjects(){
+    try{
+      const r = await fetch(SUBJEKTI_URL + "?t=" + Date.now(), {cache:"no-store"});
+      if(!r.ok) throw new Error(r.status);
+      const list = (await r.text()).split("\n").map(x=>x.trim()).filter(x=>x && !x.startsWith("#"));
+      renderSubjects(list);
+    }catch(e){
+      subs.innerHTML = '<div class="hint">Popis se trenutno ne može učitati. <a class="inline" target="_blank" rel="noopener" href="'
+        + REPO + '/blob/main/subjekti.txt">Otvori popis na GitHubu ↗</a></div>';
+    }
+  }
+
+  const addq = document.getElementById("addq"), addb = document.getElementById("addb");
+  function updateAdd(){
+    const v = addq.value.trim().replace(/\s+/g," ");
+    const ok = v.length >= 2;
+    addb.classList.toggle("disabled", !ok);
+    addb.href = ok ? zahtjev("Dodaj", v) : "#";
+  }
+  addq.addEventListener("input", updateAdd);
+  document.getElementById("addf").addEventListener("submit", e=>{ e.preventDefault(); if(addq.value.trim().length>=2) addb.focus(); });
+  addb.addEventListener("click", ()=>{ setTimeout(()=>{ addq.value=""; updateAdd(); }, 300); setTimeout(loadSubjects, 60000); });
+
+  renderRecent(); update(); updateAdd(); loadSubjects();
 </script>
 </body>
 </html>
