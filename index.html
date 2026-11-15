@@ -127,6 +127,7 @@
   const BASE = "https://e-oglasna.pravosudje.hr";
   const REPO = "https://github.com/juricm18-cmd/stecaj-ploca";
   const SUBJEKTI_URL = "https://raw.githubusercontent.com/juricm18-cmd/stecaj-ploca/main/subjekti.txt";
+  const SUBJEKTI_API = "https://api.github.com/repos/juricm18-cmd/stecaj-ploca/contents/subjekti.txt?ref=main";
   const zahtjev = (akcija, s) => REPO + "/issues/new?" + new URLSearchParams({
     title: akcija + ": " + s,
     body: "Zahtjev s nadzorne ploče. Kliknite **Create** – agent će ažurirati popis i zatvoriti ovaj zahtjev."
@@ -174,7 +175,9 @@
   }
   async function loadSubjects(){
     try{
-      const r = await fetch(SUBJEKTI_URL + "?t=" + Date.now(), {cache:"no-store"});
+      let r;
+      try{ r = await fetch(SUBJEKTI_API, {cache:"no-store", headers:{Accept:"application/vnd.github.raw"}}); if(!r.ok) throw 0; }
+      catch(_){ r = await fetch(SUBJEKTI_URL + "?t=" + Date.now(), {cache:"no-store"}); }
       if(!r.ok) throw new Error(r.status);
       const list = (await r.text()).split("\n").map(x=>x.trim()).filter(x=>x && !x.startsWith("#"));
       renderSubjects(list);
@@ -193,7 +196,8 @@
   }
   addq.addEventListener("input", updateAdd);
   document.getElementById("addf").addEventListener("submit", e=>{ e.preventDefault(); if(addq.value.trim().length>=2) addb.focus(); });
-  addb.addEventListener("click", ()=>{ setTimeout(()=>{ addq.value=""; updateAdd(); }, 300); setTimeout(loadSubjects, 60000); });
+  addb.addEventListener("click", ()=>{ setTimeout(()=>{ addq.value=""; updateAdd(); }, 300); setTimeout(loadSubjects, 45000); setTimeout(loadSubjects, 90000); });
+  window.addEventListener("focus", loadSubjects);
 
   renderRecent(); update(); updateAdd(); loadSubjects();
 </script>
