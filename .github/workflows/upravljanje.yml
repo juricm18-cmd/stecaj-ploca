@@ -1,0 +1,46 @@
+name: Upravljanje subjektima
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: subjekti
+  cancel-in-progress: false
+
+jobs:
+  obradi:
+    # samo vlasnik smije mijenjati popis
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      (startsWith(github.event.issue.title, 'Dodaj:') || startsWith(github.event.issue.title, 'Ukloni:'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ažuriraj subjekti.txt
+        id: edit
+        env:
+          NASLOV: ${{ github.event.issue.title }}
+        run: python3 .github/upravljaj.py
+
+      - name: Spremi
+        env:
+          PORUKA: ${{ steps.edit.outputs.poruka }}
+        run: |
+          git config user.name "stecaj-monitor"
+          git config user.email "actions@users.noreply.github.com"
+          git add subjekti.txt
+          git diff --cached --quiet || git commit -m "$PORUKA"
+          git push
+
+      - name: Odgovori i zatvori
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PORUKA: ${{ steps.edit.outputs.poruka }}
+          BROJ: ${{ github.event.issue.number }}
+        run: gh issue close "$BROJ" --repo "$GITHUB_REPOSITORY" --comment "$PORUKA"
