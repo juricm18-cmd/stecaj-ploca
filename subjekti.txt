@@ -1,0 +1,3 @@
+# Popis subjekata koje Stečaj monitor prati (jedan OIB ili naziv po retku).
+# Mijenja se preko nadzorne ploče: https://juricm18-cmd.github.io/stecaj-ploca/
+salonit
